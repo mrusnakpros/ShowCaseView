@@ -414,12 +414,12 @@ public class GuideView extends FrameLayout {
                 yMessageView = 0;
             }
 
-            //set message view bottom
-            if ((targetRect.left - (indicatorWidth)) < getWidth() / 2f) {
+            // more space on right
+            if (targetRect.left < getWidth() - targetRect.right) {
                 isLeft = false;
                 xMessageView = (int) (targetRect.right + indicatorWidth);
             }
-            //set message view top
+            // else place left
             else {
                 isLeft = true;
                 xMessageView = (int) (targetRect.left - mMessageView.getWidth() - indicatorWidth);
