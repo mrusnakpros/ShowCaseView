@@ -62,15 +62,14 @@ public class GuideView extends FrameLayout {
     private final Xfermode X_FER_MODE_CLEAR = new PorterDuffXfermode(PorterDuff.Mode.CLEAR);
 
     private final View target;
-    private RectF targetRect;
     private final Rect selfRect = new Rect();
-
     private final float density;
+    private final GuideMessageView mMessageView;
+    private RectF targetRect;
     private float stopY;
-    private boolean isTop;
+    private boolean isTop, isLeft;
     private boolean mIsShowing;
-    private int yMessageView = 0;
-
+    private int yMessageView = 0, xMessageView = 0;
     private float startYLineAndCircle;
     private float circleIndicatorSize = 0;
     private float circleIndicatorSizeFinal;
@@ -79,15 +78,12 @@ public class GuideView extends FrameLayout {
     private int messageViewPadding;
     private float marginGuide;
     private float strokeCircleWidth;
-    private float indicatorHeight;
-
+    private float indicatorHeight, indicatorWidth;
     private boolean isPerformedAnimationSize = false;
-
     private GuideListener mGuideListener;
     private Gravity mGravity;
     private DismissType dismissType;
     private PointerType pointerType;
-    private final GuideMessageView mMessageView;
 
     private GuideView(Context context, View view) {
         super(context);
@@ -103,28 +99,28 @@ public class GuideView extends FrameLayout {
             int[] locationTarget = new int[2];
             target.getLocationOnScreen(locationTarget);
             targetRect = new RectF(
-                locationTarget[0],
-                locationTarget[1],
-                locationTarget[0] + target.getWidth(),
-                locationTarget[1] + target.getHeight()
+                    locationTarget[0],
+                    locationTarget[1],
+                    locationTarget[0] + target.getWidth(),
+                    locationTarget[1] + target.getHeight()
             );
         }
 
         mMessageView = new GuideMessageView(getContext());
         mMessageView.setPadding(
-            messageViewPadding,
-            messageViewPadding,
-            messageViewPadding,
-            messageViewPadding
+                messageViewPadding,
+                messageViewPadding,
+                messageViewPadding,
+                messageViewPadding
         );
         mMessageView.setColor(Color.WHITE);
 
         addView(
-            mMessageView,
-            new LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+                mMessageView,
+                new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                )
         );
 
         setMessageLocation(resolveMessageViewLocation());
@@ -146,23 +142,29 @@ public class GuideView extends FrameLayout {
                     int[] locationTarget = new int[2];
                     target.getLocationOnScreen(locationTarget);
                     targetRect = new RectF(
-                        locationTarget[0],
-                        locationTarget[1],
-                        locationTarget[0] + target.getWidth(),
-                        locationTarget[1] + target.getHeight()
+                            locationTarget[0],
+                            locationTarget[1],
+                            locationTarget[0] + target.getWidth(),
+                            locationTarget[1] + target.getHeight()
                     );
                 }
 
                 selfRect.set(
-                    getPaddingLeft(),
-                    getPaddingTop(),
-                    getWidth() - getPaddingRight(),
-                    getHeight() - getPaddingBottom()
+                        getPaddingLeft(),
+                        getPaddingTop(),
+                        getWidth() - getPaddingRight(),
+                        getHeight() - getPaddingBottom()
                 );
 
-                marginGuide = (int) (isTop ? marginGuide : -marginGuide);
-                startYLineAndCircle = (isTop ? targetRect.bottom : targetRect.top) + marginGuide;
-                stopY = yMessageView + indicatorHeight;
+                if (mGravity == Gravity.sideauto || mGravity == Gravity.sidecenter) {
+                    marginGuide = (int) (isLeft ? -marginGuide : marginGuide);
+                    startYLineAndCircle = (isLeft ? targetRect.left : targetRect.right) + marginGuide;
+                    stopY = xMessageView + indicatorWidth;
+                } else {
+                    marginGuide = (int) (isTop ? marginGuide : -marginGuide);
+                    startYLineAndCircle = (isTop ? targetRect.bottom : targetRect.top) + marginGuide;
+                    stopY = yMessageView + indicatorHeight;
+                }
                 startAnimationSize();
                 getViewTreeObserver().addOnGlobalLayoutListener(this);
             }
@@ -173,28 +175,22 @@ public class GuideView extends FrameLayout {
     private void startAnimationSize() {
         if (!isPerformedAnimationSize) {
             final ValueAnimator circleSizeAnimator = ValueAnimator.ofFloat(
-                0f,
-                circleIndicatorSizeFinal
+                    0f,
+                    circleIndicatorSizeFinal
             );
-            circleSizeAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                    circleIndicatorSize = (float) circleSizeAnimator.getAnimatedValue();
-                    circleInnerIndicatorSize = (float) circleSizeAnimator.getAnimatedValue() - density;
-                    postInvalidate();
-                }
+            circleSizeAnimator.addUpdateListener(valueAnimator -> {
+                circleIndicatorSize = (float) circleSizeAnimator.getAnimatedValue();
+                circleInnerIndicatorSize = (float) circleSizeAnimator.getAnimatedValue() - density;
+                postInvalidate();
             });
 
             final ValueAnimator linePositionAnimator = ValueAnimator.ofFloat(
-                stopY,
-                startYLineAndCircle
+                    stopY,
+                    startYLineAndCircle
             );
-            linePositionAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                    startYLineAndCircle = (float) linePositionAnimator.getAnimatedValue();
-                    postInvalidate();
-                }
+            linePositionAnimator.addUpdateListener(valueAnimator -> {
+                startYLineAndCircle = (float) linePositionAnimator.getAnimatedValue();
+                postInvalidate();
             });
 
             linePositionAnimator.setDuration(SIZE_ANIMATION_DURATION);
@@ -228,7 +224,7 @@ public class GuideView extends FrameLayout {
     private void init() {
         lineIndicatorWidthSize = LINE_INDICATOR_WIDTH_SIZE * density;
         marginGuide = MARGIN_INDICATOR * density;
-        indicatorHeight = INDICATOR_HEIGHT * density;
+        indicatorHeight = indicatorWidth = INDICATOR_HEIGHT * density;
         messageViewPadding = (int) (MESSAGE_VIEW_PADDING * density);
         strokeCircleWidth = STROKE_CIRCLE_INDICATOR_SIZE * density;
         circleIndicatorSizeFinal = CIRCLE_INDICATOR_SIZE * density;
@@ -273,16 +269,27 @@ public class GuideView extends FrameLayout {
             paintCircleInner.setColor(CIRCLE_INNER_INDICATOR_COLOR);
             paintCircleInner.setAntiAlias(true);
 
-            final float x = (targetRect.left / 2 + targetRect.right / 2);
+            float x = 0.0f;
+            if (mGravity == Gravity.sideauto || mGravity == Gravity.sidecenter) {
+                x = (targetRect.top / 2 + targetRect.bottom / 2);
+            } else {
+                x = (targetRect.left / 2 + targetRect.right / 2);
+            }
 
             switch (pointerType) {
                 case circle:
-                    canvas.drawLine(x,startYLineAndCircle,x,stopY,paintLine);
-                    canvas.drawCircle(x, startYLineAndCircle, circleIndicatorSize, paintCircle);
-                    canvas.drawCircle(x, startYLineAndCircle, circleInnerIndicatorSize, paintCircleInner);
+                    if (mGravity == Gravity.sideauto || mGravity == Gravity.sidecenter) {
+                        canvas.drawLine(startYLineAndCircle, x, stopY, x, paintLine);
+                        canvas.drawCircle(startYLineAndCircle, x, circleIndicatorSize, paintCircle);
+                        canvas.drawCircle(startYLineAndCircle, x, circleInnerIndicatorSize, paintCircleInner);
+                    } else {
+                        canvas.drawLine(x, startYLineAndCircle, x, stopY, paintLine);
+                        canvas.drawCircle(x, startYLineAndCircle, circleIndicatorSize, paintCircle);
+                        canvas.drawCircle(x, startYLineAndCircle, circleInnerIndicatorSize, paintCircleInner);
+                    }
                     break;
                 case arrow:
-                    canvas.drawLine(x,startYLineAndCircle,x,stopY,paintLine);
+                    canvas.drawLine(x, startYLineAndCircle, x, stopY, paintLine);
                     Path path = new Path();
                     if (isTop) {
                         path.moveTo(x, startYLineAndCircle - (circleIndicatorSize * 2));
@@ -308,10 +315,10 @@ public class GuideView extends FrameLayout {
                 canvas.drawPath(((Targetable) target).guidePath(), targetPaint);
             } else {
                 canvas.drawRoundRect(
-                    targetRect,
-                    RADIUS_SIZE_TARGET_RECT,
-                    RADIUS_SIZE_TARGET_RECT,
-                    targetPaint
+                        targetRect,
+                        RADIUS_SIZE_TARGET_RECT,
+                        RADIUS_SIZE_TARGET_RECT,
+                        targetPaint
                 );
             }
         }
@@ -362,7 +369,7 @@ public class GuideView extends FrameLayout {
                     break;
 
                 case outsideTargetAndMessage:
-                    if(!(targetRect.contains(x, y) || isViewContains(mMessageView, x, y))){
+                    if (!(targetRect.contains(x, y) || isViewContains(mMessageView, x, y))) {
                         dismiss();
                     }
             }
@@ -393,47 +400,75 @@ public class GuideView extends FrameLayout {
     }
 
     private Point resolveMessageViewLocation() {
+        if (mGravity == Gravity.sideauto || mGravity == Gravity.sidecenter) {
+            if (mGravity == Gravity.sidecenter) {
+                yMessageView = (int) (targetRect.top + target.getHeight() / 2 - mMessageView.getHeight() / 2);
+            } else {
+                yMessageView = (int) (targetRect.top);
+            }
 
-        int xMessageView;
-        if (mGravity == Gravity.center) {
-            xMessageView = (int) (targetRect.left - mMessageView.getWidth() / 2 + target.getWidth() / 2);
+            if (yMessageView + mMessageView.getHeight() > getHeight()) {
+                yMessageView = getHeight() - mMessageView.getHeight();
+            }
+            if (yMessageView < 0) {
+                yMessageView = 0;
+            }
+
+            //set message view bottom
+            if ((targetRect.left - (indicatorWidth)) < getWidth() / 2f) {
+                isLeft = false;
+                xMessageView = (int) (targetRect.right + indicatorWidth);
+            }
+            //set message view top
+            else {
+                isLeft = true;
+                xMessageView = (int) (targetRect.left - mMessageView.getWidth() - indicatorWidth);
+            }
+
+            if (xMessageView < 0) {
+                xMessageView = 0;
+            }
+
         } else {
-            xMessageView = (int) (targetRect.right) - mMessageView.getWidth();
-        }
+            if (mGravity == Gravity.center) {
+                xMessageView = (int) (targetRect.left - mMessageView.getWidth() / 2 + target.getWidth() / 2);
+            } else {
+                xMessageView = (int) (targetRect.right) - mMessageView.getWidth();
+            }
 
-        if (isLandscape()) {
-            xMessageView -= getNavigationBarSize();
-        }
+            if (isLandscape()) {
+                xMessageView -= getNavigationBarSize();
+            }
 
-        if (xMessageView + mMessageView.getWidth() > getWidth()) {
-            xMessageView = getWidth() - mMessageView.getWidth();
-        }
-        if (xMessageView < 0) {
-            xMessageView = 0;
-        }
+            if (xMessageView + mMessageView.getWidth() > getWidth()) {
+                xMessageView = getWidth() - mMessageView.getWidth();
+            }
+            if (xMessageView < 0) {
+                xMessageView = 0;
+            }
 
-        //set message view bottom
-        if ((targetRect.top + (indicatorHeight)) > getHeight() / 2f) {
-            isTop = false;
-            yMessageView = (int) (targetRect.top - mMessageView.getHeight() - indicatorHeight);
-        }
-        //set message view top
-        else {
-            isTop = true;
-            yMessageView = (int) (targetRect.top + target.getHeight() + indicatorHeight);
-        }
+            //set message view bottom
+            if ((targetRect.top + (indicatorHeight)) > getHeight() / 2f) {
+                isTop = false;
+                yMessageView = (int) (targetRect.top - mMessageView.getHeight() - indicatorHeight);
+            }
+            //set message view top
+            else {
+                isTop = true;
+                yMessageView = (int) (targetRect.top + target.getHeight() + indicatorHeight);
+            }
 
-        if (yMessageView < 0) {
-            yMessageView = 0;
+            if (yMessageView < 0) {
+                yMessageView = 0;
+            }
         }
-
         return new Point(xMessageView, yMessageView);
     }
 
     public void show() {
         this.setLayoutParams(new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
         ));
         this.setClickable(false);
 
@@ -475,12 +510,12 @@ public class GuideView extends FrameLayout {
 
     public static class Builder {
 
+        private final Context context;
         private View targetView;
         private String title, contentText;
         private Gravity gravity;
         private DismissType dismissType;
         private PointerType pointerType;
-        private final Context context;
         private Spannable contentSpan;
         private Typeface titleTypeFace, contentTypeFace;
         private GuideListener guideListener;
@@ -662,6 +697,7 @@ public class GuideView extends FrameLayout {
             this.pointerType = pointerType;
             return this;
         }
+
         public GuideView build() {
             GuideView guideView = new GuideView(context, targetView);
             guideView.mGravity = gravity != null ? gravity : Gravity.auto;
