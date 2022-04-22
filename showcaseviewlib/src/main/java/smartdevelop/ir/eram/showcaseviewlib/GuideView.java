@@ -80,6 +80,9 @@ public class GuideView extends FrameLayout {
     private float strokeCircleWidth;
     private float indicatorHeight, indicatorWidth;
     private boolean isPerformedAnimationSize = false;
+    private int messageBoxColor = Color.WHITE;
+    private int messageTitleColor = Color.BLACK;
+    private int messageContentTextColor = Color.BLACK;
     private GuideListener mGuideListener;
     private Gravity mGravity;
     private DismissType dismissType;
@@ -113,7 +116,7 @@ public class GuideView extends FrameLayout {
                 messageViewPadding,
                 messageViewPadding
         );
-        mMessageView.setColor(Color.WHITE);
+        mMessageView.setColor(messageBoxColor);
 
         addView(
                 mMessageView,
@@ -248,6 +251,10 @@ public class GuideView extends FrameLayout {
     protected void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
         if (target != null) {
+
+            mMessageView.setColor(messageBoxColor);
+            mMessageView.setTitleColor(messageTitleColor);
+            mMessageView.setContentTextColor(messageContentTextColor);
 
             selfPaint.setColor(BACKGROUND_COLOR);
             selfPaint.setStyle(Paint.Style.FILL);
@@ -526,6 +533,9 @@ public class GuideView extends FrameLayout {
         private float circleIndicatorSize;
         private float circleInnerIndicatorSize;
         private float strokeCircleWidth;
+        private int messageBoxColor;
+        private int messageTitleColor;
+        private int messageContentTextColor;
 
         public Builder(Context context) {
             this.context = context;
@@ -698,6 +708,36 @@ public class GuideView extends FrameLayout {
             return this;
         }
 
+        public Builder setMessageBoxColor(int messageBoxColor) {
+            this.messageBoxColor = messageBoxColor;
+            return this;
+        }
+
+        public Builder setLineIndicatorHeight(float lineIndicatorHeight) {
+            this.lineIndicatorHeight = lineIndicatorHeight;
+            return this;
+        }
+
+        public Builder setLineIndicatorWidthSize(float lineIndicatorWidthSize) {
+            this.lineIndicatorWidthSize = lineIndicatorWidthSize;
+            return this;
+        }
+
+        public Builder setStrokeCircleWidth(float strokeCircleWidth) {
+            this.strokeCircleWidth = strokeCircleWidth;
+            return this;
+        }
+
+        public Builder setMessageTitleColor(int messageTitleColor) {
+            this.messageTitleColor = messageTitleColor;
+            return this;
+        }
+
+        public Builder setMessageContentTextColor(int messageContentTextColor) {
+            this.messageContentTextColor = messageContentTextColor;
+            return this;
+        }
+
         public GuideView build() {
             GuideView guideView = new GuideView(context, targetView);
             guideView.mGravity = gravity != null ? gravity : Gravity.auto;
@@ -741,6 +781,15 @@ public class GuideView extends FrameLayout {
             }
             if (strokeCircleWidth != 0) {
                 guideView.strokeCircleWidth = strokeCircleWidth * density;
+            }
+            if (messageBoxColor != 0) {
+                guideView.messageBoxColor = messageBoxColor;
+            }
+            if (messageTitleColor != 0) {
+                guideView.messageTitleColor = messageTitleColor;
+            }
+            if (messageContentTextColor != 0) {
+                guideView.messageContentTextColor = messageContentTextColor;
             }
 
             return guideView;

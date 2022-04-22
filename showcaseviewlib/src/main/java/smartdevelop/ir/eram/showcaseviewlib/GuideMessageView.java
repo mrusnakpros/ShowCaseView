@@ -53,11 +53,11 @@ class GuideMessageView extends LinearLayout {
         mTitleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, DEFAULT_TITLE_TEXT_SIZE);
         mTitleTextView.setTextColor(Color.BLACK);
         addView(
-            mTitleTextView,
-            new LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+                mTitleTextView,
+                new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                )
         );
 
         mContentTextView = new TextView(context);
@@ -66,11 +66,11 @@ class GuideMessageView extends LinearLayout {
         mContentTextView.setPadding(padding, paddingBottom, padding, padding);
         mContentTextView.setGravity(Gravity.CENTER);
         addView(
-            mContentTextView,
-            new LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+                mContentTextView,
+                new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                )
         );
     }
 
@@ -111,6 +111,16 @@ class GuideMessageView extends LinearLayout {
         invalidate();
     }
 
+    public void setTitleColor(int color) {
+        if (color != 0)
+            mTitleTextView.setTextColor(color);
+    }
+
+    public void setContentTextColor(int color) {
+        if (color != 0)
+            mContentTextView.setTextColor(color);
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -118,10 +128,10 @@ class GuideMessageView extends LinearLayout {
         this.getLocationOnScreen(location);
 
         mRect.set(
-            getPaddingLeft(),
-            getPaddingTop(),
-            getWidth() - getPaddingRight(),
-            getHeight() - getPaddingBottom()
+                getPaddingLeft(),
+                getPaddingTop(),
+                getWidth() - getPaddingRight(),
+                getHeight() - getPaddingBottom()
         );
 
         final int density = (int) getResources().getDisplayMetrics().density;
